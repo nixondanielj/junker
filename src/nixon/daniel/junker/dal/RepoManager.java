@@ -9,15 +9,15 @@ public class RepoManager {
 		setName(name);
 	}
 	
-	public Repository getRepository() throws Exception {
+	public JunkRepository getRepository() throws Exception {
 		// lazy loaded to shorten connection active time
 		if(repository == null){
-			setRepository(new Repository(Settings.getConnectionString(), Settings.getAnonDbName(), getName()));
+			setRepository(new JunkRepository(Settings.getConnectionString(), getName()));
 		}
 		return this.repository;
 	}
 
-	public void setRepository(Repository repository) {
+	public void setRepository(JunkRepository repository) {
 		this.repository = repository;
 	}
 
@@ -33,6 +33,6 @@ public class RepoManager {
 		this.name = name;
 	}
 	
-	private Repository repository;
+	private JunkRepository repository;
 	private String name;
 }

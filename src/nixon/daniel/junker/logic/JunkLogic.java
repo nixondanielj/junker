@@ -20,7 +20,7 @@ public abstract class JunkLogic {
 		this.repositoryManager = unitOfWork;
 	}
 
-	public void persist(JunkFM junk) {
+	public void persist(JunkFM junk) throws Exception {
 		if(junk.getId() != null && getRepositoryManager().getRepository().getJunkById(junk.getId()) != null){
 			// if already have object
 			update(junk);
@@ -33,6 +33,6 @@ public abstract class JunkLogic {
 		getRepositoryManager().kill();
 	}
 	
-	protected abstract void create(JunkFM junk);
-	protected abstract void update(JunkFM junk);
+	protected abstract void create(JunkFM junk) throws Exception;
+	protected abstract void update(JunkFM junk) throws Exception;
 }

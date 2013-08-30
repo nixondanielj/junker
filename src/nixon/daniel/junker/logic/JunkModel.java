@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import nixon.daniel.junker.config.Settings;
 
-public class JunkModel {
+public abstract class JunkModel {
 
 	public JunkModel(String name){
 		setType(name);
@@ -24,13 +24,8 @@ public class JunkModel {
 		getProperties().put(Settings.getIdKeyword(), id);
 	}
 	
-	public HashMap<String,String> getProperties() {
-		return properties;
-	}
-	public void setProperties(HashMap<String,String> properties) {
-		this.properties = properties;
-	}
+	public abstract HashMap<String,String> getProperties();
 
 	private String type;
-	private HashMap<String,String> properties;
+	
 }

@@ -25,7 +25,7 @@ public class JunkFace {
 	@Path("{name}")
 	@Produces(MediaType.APPLICATION_XML)
 	public String getJunk(@PathParam("name") String name, @PathParam("id") String id){
-		List<JunkVM> junks = new AnonLogic().retrieve(name);
+		List<JunkVM> junks = new AnonLogic(name).retrieve(id);
 	}
 	
 	@POST
@@ -37,7 +37,7 @@ public class JunkFace {
 		}
 		JunkFM junk = new JunkFM(name);
 		for(String key : params.keySet()){
-			junk.getRawProperties().put(key,params.get(key));
+			junk.getRawParameters().put(key,params.get(key));
 		}
 		new AnonLogic(name).persist(junk);
 	}
