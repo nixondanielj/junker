@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 
+import nixon.daniel.junker.config.Settings;
+
 public class Repository {
 
 	public Repository(String cString, String dbName, String tableName)
@@ -17,11 +19,16 @@ public class Repository {
 		this.dbName = sanitize(dbName);
 	}
 
-	protected void buildStructure(String table, Set<String> set)
+	protected void buildTableStructure(String table, Set<String> set)
 			throws SQLException {
 		if (!tableExists(table)) {
 			createTable(table);
 		}
+		buildColumns(table, set);
+	}
+
+	protected void buildColumns(String table, Set<String> set)
+			throws SQLException {
 		for (String column : set) {
 			if (!hasColumn(table, column)) {
 				addColumn(column);
@@ -54,7 +61,7 @@ public class Repository {
 	}
 
 	protected void createTable(String name) throws SQLException {
-		executeNonQuery("CREATE TABLE " + name.replace("'", "") + "( Id varchar(5000) not null )");
+		executeNonQuery(String.format("CREATE TABLE %s ( %s varchar(5000) not null)", sanitize(name), Settings.getIdKeyword()));
 	}
 
 	protected boolean hasColumn(String tableName, String columnName)
@@ -65,8 +72,7 @@ public class Repository {
 	}
 
 	protected void addColumn(String columnName) throws SQLException {
-		executeNonQuery("ALTER TABLE " + this.tableName + " ADD " + columnName.replace("'", "")
-				+ " varchar(5000) default NULL");
+		executeNonQuery(String.format("ALTER TABLE %s ADD %s varchar(5000)", this.tableName, columnName));
 	}
 
 	protected boolean tableExists(String tableName) throws SQLException {

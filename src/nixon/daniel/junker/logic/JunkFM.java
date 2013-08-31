@@ -16,7 +16,7 @@ public class JunkFM extends JunkModel {
 			if (!key.contains("[")) {
 				if (getRawParameters().get(key).size() == 0) {
 					properties.put(key, null);
-				} else if (getRawParameters().size() == 1) {
+				} else if (getRawParameters().get(key).size() == 1) {
 					properties.put(key, getRawParameters().get(key).get(0));
 				}
 			}
@@ -25,7 +25,10 @@ public class JunkFM extends JunkModel {
 	}
 
 	public HashMap<String, List<String>> getRawParameters() {
-		return rawParameters;
+		if(this.rawParameters == null){
+			setRawParameters(new HashMap<String, List<String>>());
+		}
+		return this.rawParameters;
 	}
 
 	public void setRawParameters(HashMap<String, List<String>> rawParameters) {

@@ -8,41 +8,38 @@ import java.util.List;
 
 import nixon.daniel.junker.config.Settings;
 
+/*
+ * hypothesis: better to avoid overhead of creating/dropping sprocs with tables
+ * need to investigate performance
+*/
+
 public class JunkRepository extends Repository {
 
-	public JunkRepository(String cString, String name) throws Exception{
+	public JunkRepository(String cString, String name) throws Exception {
 		super(cString, Settings.getAnonDbName(), name);
 	}
-	
-	public void create(Junk junk) throws SQLException{
-		buildStructure(this.tableName, junk.getProperties().keySet());
+
+	public void create(Junk junk) throws SQLException {
+		buildTableStructure(this.tableName, junk.getProperties().keySet());
 		insert(junk);
 	}
 
-	public boolean verifyKeys(List<String> keys){
-		boolean result = true;
-		
-		return result;
-	}
-	
-	public List<Junk> getAllJunks() throws SQLException{
-		return getJunks("SELECT * FROM ?", this.tableName);
+	public List<Junk> getAllJunks() throws SQLException {
+		return getJunks(String.format("SELECT * FROM %s", this.tableName));
 	}
 
-	public Junk getJunkById(String id) throws SQLException {
-		List<Junk> junks = getJunks("SELECT * FROM ? WHERE Id = ?", this.tableName, id);
-		if(junks.size() > 0){
-			return junks.get(0);
-		}
-		return null;
+	public List<Junk> getJunkById(String id) throws SQLException {
+		return getJunks(String.format("SELECT * FROM %s WHERE %s = ?",
+				this.tableName, Settings.getIdKeyword()), id);
 	}
-	
-	private List<Junk> getJunks(String statement, Object... parameters) throws SQLException{
+
+	private List<Junk> getJunks(String statement, Object... parameters)
+			throws SQLException {
 		ResultSet results = execute(statement, parameters);
 		List<Junk> junks = new ArrayList<Junk>();
-		while(results.next()){
-			HashMap<String,String> properties = new HashMap<String,String>();
-			for(int i = 1; i <= results.getMetaData().getColumnCount(); i++){
+		while (results.next()) {
+			HashMap<String, String> properties = new HashMap<String, String>();
+			for (int i = 1; i <= results.getMetaData().getColumnCount(); i++) {
 				String key = results.getMetaData().getColumnName(i);
 				String value = results.getString(i);
 				properties.put(key, value);
@@ -53,18 +50,33 @@ public class JunkRepository extends Repository {
 		}
 		return junks;
 	}
-	
-	private void insert(Junk junk) throws SQLException {
-		String statement = "INSERT INTO " + this.tableName;
-		statement += " (";
-		String vals = "(";
-		boolean first = true;
-		for (String column : junk.getProperties().keySet()) {
-			statement += (first ? "" : ",") + sanitize(column);
-			vals += (first ? "'" : ",'") + sanitize(junk.getProperties().get(column)) + "'";
-			first = false;
+
+	public void update(Junk model) throws SQLException {
+		buildColumns(this.tableName, model.getProperties().keySet());
+		String statement = "UPDATE %s SET %s WHERE %s = ?";
+		String set = "";
+		for(String column : model.getProperties().keySet()){
+			if(set.length()!=0){
+				set += ",";
+			}
+			set += String.format("%s = '%s'", sanitize(column), sanitize(model.getProperties().get(column)));
 		}
-		statement += ") VALUES " + vals + ")";
-		executeNonQuery(statement);
+		executeNonQuery(String.format(statement, this.tableName, set, Settings.getIdKeyword()), model.getId());
 	}
+
+	private void insert(Junk junk) throws SQLException {
+		String statement = "INSERT INTO %s (%s) VALUES (%s)";
+		String columns = "";
+		String vals = "";
+		for (String column : junk.getProperties().keySet()) {
+			if(columns.length() != 0){
+				columns += ",";
+				vals+=",";
+			}
+			columns += sanitize(column);
+			vals += "'" + sanitize(junk.getProperties().get(column)) + "'";
+		}
+		executeNonQuery(String.format(statement, this.tableName, columns, vals));
+	}
+
 }
