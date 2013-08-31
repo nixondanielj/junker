@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script
+	src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript">
+	function addParameterField() {
+		var newDiv = $("<div></div>")
+		var paramBox = $(newDiv);
+		var paramNameBox = $(newDiv);
+		paramNameBox.append("<label>Name:</label>");
+		paramNameBox.append("<input class=\"name\" type=\"text\" />");
+		paramBox.append(paramNameBox);
+		var paramValBox = $(newDiv);
+		paramValBox.append("<label>Value:</label>");
+		paramValBox.append("<input class=\"value\" type=\"text\" />");
+		paramBox.append(paramValBox);
+		$(".parameters").append(paramBox);
+	}
+
+	function getData() {
+		var names = $(".parameters .name");
+		var vals = $(".parameters .value");
+		var data = {};
+		names.each(function(i) {
+			data[this.value] = vals.get(i).value;
+		});
+		return data;
+	}
+
+	function cleanse(xml) {
+		var formatted = "";
+		var reg = /(>)(<)(\/*)/g;
+		xml = xml.replace("\r", "").replace(reg, '$1\n$2$3');
+		var pad = 0;
+		jQuery.each(xml.split('\n'), function(index, node) {
+			var indent = 0;
+			if (node.match(/.+<\/\w[^>]*>$/)) {
+				indent = 0;
+			} else if (node.match(/^<\/\w/)) {
+				if (pad != 0) {
+					pad -= 1;
+				}
+			} else if (node.match(/^<\w[^>]*[^\/]>.*$/)) {
+				indent = 1;
+			} else {
+				indent = 0;
+			}
+
+			var padding = '';
+			for ( var i = 0; i < pad * 4; i++) {
+				padding += 'nbsp';
+			}
+
+			formatted += padding + node + '\r\n';
+			pad += indent;
+		});
+		return formatted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
+				/>/g, '&gt;').replace(/nbsp/g, '&nbsp;').replace(/\n/g,
+				'<br />');
+	}
+
+	function sendRequest() {
+		var url = $(".server").val();
+		if (url) {
+			$.ajax({
+				type : $("option:selected").html(),
+				data : getData(),
+				url : url,
+				dataType : 'text',
+				success : function(result) {
+					$(".results").html(cleanse(result));
+				},
+				error : function(result, status, thrown) {
+					alert(status + " " + thrown);
+				}
+			});
+		} else {
+			alert("Enter a server");
+		}
+	}
+</script>
+</head>
+<body>
+	<div>
+		<label>Server:</label> <input class="server" type="text"
+			placeholder="Server here" value="/Junker/junky/junk/people" />
+	</div>
+	<div>
+		<label>Request Type</label> <select>
+			<option selected>GET</option>
+			<option>POST</option>
+			<option>PUT</option>
+			<option>DELETE</option>
+		</select>
+		<button onclick="addParameterField();">Add Parameter</button>
+
+		<form>
+			<div class="parameters"></div>
+		</form>
+		<div>
+			<button onclick="sendRequest();">Submit</button>
+		</div>
+		Results will appear here
+		<div class="results"></div>
+	</div>
+</body>
+</html>

@@ -1,7 +1,10 @@
 package nixon.daniel.junker.logic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import nixon.daniel.junker.config.Settings;
 
 public class JunkFM extends JunkModel {
 
@@ -22,6 +25,13 @@ public class JunkFM extends JunkModel {
 			}
 		}
 		return properties;
+	}
+	
+	@Override
+	public void setId(String id){
+		List<String> temp = new ArrayList<String>(1);
+		temp.add(id);
+		getRawParameters().put(Settings.getIdKeyword(), temp);
 	}
 
 	public HashMap<String, List<String>> getRawParameters() {

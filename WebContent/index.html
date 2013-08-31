@@ -3,7 +3,7 @@
 	<head>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script type="text/javascript">
-			$(document).ready(function(){
+			function postTestData(){
 				$.post('/Junker/junky/junk/people', 
 					{
 						id: "d1e31eab-4793-4ebd-a3e1-58cbd974475a",
@@ -11,11 +11,13 @@
 						lname:"Reinking",
 						age:23,
 						mname: "Rebecca"
+					}).done(function(){
+						$("button").html("Worked!");
 					});
-			});
+			}
 		</script>
 	</head>
 	<body>
-		Nothing special here
+		<button onclick="postTestData();">Test</button>
 	</body>
 </html>

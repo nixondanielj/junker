@@ -14,9 +14,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import nixon.daniel.junker.config.Settings;
 import nixon.daniel.junker.logic.AnonLogic;
 import nixon.daniel.junker.logic.JunkFM;
 import nixon.daniel.junker.logic.JunkVM;
+import nixon.daniel.utils.general.XMLUtils;
 
 @Path("/junk")
 public class JunkFace {
@@ -38,17 +40,20 @@ public class JunkFace {
 	@POST
 	@Path("{name}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public void addJunk(@PathParam("name") String name, MultivaluedMap<String,String> params) throws Exception{
-		saveJunk(name, params);
+	@Produces(MediaType.APPLICATION_XML)
+	public String addJunk(@PathParam("name") String name, MultivaluedMap<String,String> params) throws Exception{
+		String id = saveJunk(name, params);
 		System.out.println("posted junk to " + name);
+		return XMLUtils.wrap(Settings.getIdKeyword(), id);
 	}
 	
 	@PUT
 	@Path("{name}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public void updateJunk(@PathParam("name") String name, MultivaluedMap<String,String> params) throws Exception{
-		saveJunk(name, params);
+	public String updateJunk(@PathParam("name") String name, MultivaluedMap<String,String> params) throws Exception{
+		String id = saveJunk(name, params);
 		System.out.println("put junk to " + name);
+		return XMLUtils.wrap(Settings.getIdKeyword(), id);
 	}
 	
 	@DELETE
@@ -56,7 +61,7 @@ public class JunkFace {
 		
 	}
 	
-	private void saveJunk(String name, MultivaluedMap<String, String> params)
+	private String saveJunk(String name, MultivaluedMap<String, String> params)
 			throws Exception {
 		if(name == null || name.length() == 0){
 			throw new Exception();
@@ -65,7 +70,7 @@ public class JunkFace {
 		for(String key : params.keySet()){
 			junk.getRawParameters().put(key,params.get(key));
 		}
-		new AnonLogic(name).persist(junk);
+		return new AnonLogic(name).persist(junk);
 	}
 
 	private String retrieve(String name, String id) throws SQLException,
@@ -74,11 +79,13 @@ public class JunkFace {
 		StringBuffer xmlResult = new StringBuffer();
 		xmlResult.append("<collection type=\"" + name + "\">\n");
 		for(JunkVM junk : junks){
-			xmlResult.append(junk.toXML());
+			xmlResult.append(XMLUtils.toXML(junk.getType(), junk.getProperties()));
 			xmlResult.append("\n");
 		}
 		xmlResult.append("</collection>");
 		System.out.println("Successfully returned collection "+ name);
 		return xmlResult.toString();
 	}
+	
+	
 }
