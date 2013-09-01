@@ -11,7 +11,7 @@ import nixon.daniel.junker.config.Settings;
 /*
  * hypothesis: better to avoid overhead of creating/dropping sprocs with tables
  * need to investigate performance
-*/
+ */
 
 public class JunkRepository extends Repository {
 
@@ -35,18 +35,21 @@ public class JunkRepository extends Repository {
 
 	private List<Junk> getJunks(String statement, Object... parameters)
 			throws SQLException {
-		ResultSet results = execute(statement, parameters);
-		List<Junk> junks = new ArrayList<Junk>();
-		while (results.next()) {
-			HashMap<String, String> properties = new HashMap<String, String>();
-			for (int i = 1; i <= results.getMetaData().getColumnCount(); i++) {
-				String key = results.getMetaData().getColumnName(i);
-				String value = results.getString(i);
-				properties.put(key, value);
+		List<Junk> junks = null;
+		if (tableExists(this.tableName)) {
+			ResultSet results = execute(statement, parameters);
+			junks = new ArrayList<Junk>();
+			while (results.next()) {
+				HashMap<String, String> properties = new HashMap<String, String>();
+				for (int i = 1; i <= results.getMetaData().getColumnCount(); i++) {
+					String key = results.getMetaData().getColumnName(i);
+					String value = results.getString(i);
+					properties.put(key, value);
+				}
+				Junk junk = new Junk();
+				junk.setProperties(properties);
+				junks.add(junk);
 			}
-			Junk junk = new Junk();
-			junk.setProperties(properties);
-			junks.add(junk);
 		}
 		return junks;
 	}
@@ -55,19 +58,23 @@ public class JunkRepository extends Repository {
 		buildColumns(this.tableName, model.getProperties().keySet());
 		String statement = "UPDATE %s SET %s WHERE %s = ?";
 		String set = "";
-		for(String column : model.getProperties().keySet()){
-			if(set.length()!=0){
+		for (String column : model.getProperties().keySet()) {
+			if (set.length() != 0) {
 				set += ",";
 			}
-			set += String.format("%s = '%s'", sanitize(column), sanitize(model.getProperties().get(column)));
+			set += String.format("%s = '%s'", sanitize(column), sanitize(model
+					.getProperties().get(column)));
 		}
-		executeNonQuery(String.format(statement, this.tableName, set, Settings.getIdKeyword()), model.getId());
+		executeNonQuery(
+				String.format(statement, this.tableName, set,
+						Settings.getIdKeyword()), model.getId());
 	}
-	
-	public void delete(String id) throws SQLException{
-		executeNonQuery(String.format("DELETE FROM %s WHERE %s = ?", this.tableName, Settings.getIdKeyword()), id);
+
+	public void delete(String id) throws SQLException {
+		executeNonQuery(String.format("DELETE FROM %s WHERE %s = ?",
+				this.tableName, Settings.getIdKeyword()), id);
 	}
-	
+
 	public void deleteAll() throws SQLException {
 		executeNonQuery(String.format("DROP TABLE %s", this.tableName));
 	}
@@ -77,16 +84,14 @@ public class JunkRepository extends Repository {
 		String columns = "";
 		String vals = "";
 		for (String column : junk.getProperties().keySet()) {
-			if(columns.length() != 0){
+			if (columns.length() != 0) {
 				columns += ",";
-				vals+=",";
+				vals += ",";
 			}
 			columns += sanitize(column);
 			vals += "'" + sanitize(junk.getProperties().get(column)) + "'";
 		}
 		executeNonQuery(String.format(statement, this.tableName, columns, vals));
 	}
-
-	
 
 }

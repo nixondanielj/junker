@@ -25,20 +25,23 @@ public class AnonLogic extends JunkLogic {
 	protected void update(JunkFM junk) throws Exception {
 		Junk model = new Junk();
 		model.setProperties(junk.getProperties());
-		if(model.getProperties().size() > 1){
+		if (model.getProperties().size() > 1) {
 			getRepositoryManager().getRepository().update(model);
 		}
 	}
 
 	public List<JunkVM> retrieve(String id) throws SQLException, Exception {
 		List<Junk> rawJunk = retrieveRawJunk(id);
-		List<JunkVM> junkVMs = new ArrayList<JunkVM>();
-		for(Junk junk : rawJunk){
-			junkVMs.add(toJunkVM(junk));
+		List<JunkVM> junkVMs = null;
+		if (rawJunk != null) {
+			junkVMs = new ArrayList<JunkVM>();
+			for (Junk junk : rawJunk) {
+				junkVMs.add(toJunkVM(junk));
+			}
 		}
 		return junkVMs;
 	}
-	
+
 	@Override
 	protected void deleteCollection(String name) throws Exception {
 		getRepositoryManager().getRepository().deleteAll();
@@ -58,14 +61,12 @@ public class AnonLogic extends JunkLogic {
 	private List<Junk> retrieveRawJunk(String id) throws SQLException,
 			Exception {
 		List<Junk> rawJunk;
-		if(id == null){
+		if (id == null) {
 			rawJunk = getRepositoryManager().getRepository().getAllJunks();
 		} else {
 			rawJunk = getRepositoryManager().getRepository().getJunkById(id);
 		}
 		return rawJunk;
 	}
-
-	
 
 }

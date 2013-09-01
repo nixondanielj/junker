@@ -20,6 +20,8 @@ import nixon.daniel.junker.logic.JunkFM;
 import nixon.daniel.junker.logic.JunkVM;
 import nixon.daniel.utils.general.XMLUtils;
 
+import com.sun.jersey.api.NotFoundException;
+
 @Path("/junk")
 public class JunkFace {
 	
@@ -84,9 +86,11 @@ public class JunkFace {
 		return new AnonLogic(name).persist(junk);
 	}
 
-	private String retrieve(String name, String id) throws SQLException,
-			Exception {
+	private String retrieve(String name, String id) throws Exception {
 		List<JunkVM> junks = new AnonLogic(name).retrieve(id);
+		if(junks == null){
+			throw new NotFoundException();
+		}
 		StringBuffer xmlResult = new StringBuffer();
 		xmlResult.append("<collection type=\"" + name + "\">\n");
 		for(JunkVM junk : junks){
