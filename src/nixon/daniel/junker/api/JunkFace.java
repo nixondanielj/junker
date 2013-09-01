@@ -19,88 +19,86 @@ import nixon.daniel.junker.logic.AnonLogic;
 import nixon.daniel.junker.logic.JunkFM;
 import nixon.daniel.junker.logic.JunkVM;
 import nixon.daniel.utils.general.XMLUtils;
+import nixon.daniel.utils.jersey.RestAPI;
 
 import com.sun.jersey.api.NotFoundException;
 
-@Path("/junk")
+@Path("{name}")
 public class JunkFace {
 	
-	@GET
-	@Path("{name}/{id}")
-	@Produces(MediaType.APPLICATION_XML)
-	public String getJunk(@PathParam("name") String name, @PathParam("id") String id) throws SQLException, Exception{
-		return retrieve(name, id);
+	public JunkFace(@PathParam("name") String name) throws Exception{
+		this.logic = new AnonLogic(name);
 	}
 	
 	@GET
-	@Path("{name}")
+	@Path("{id}")
 	@Produces(MediaType.APPLICATION_XML)
-	public String getJunk(@PathParam("name") String name) throws SQLException, Exception{
-		return retrieve(name, null);
+	public String getJunk(@PathParam("id") String id) throws SQLException, Exception{
+		return retrieve(id);
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_XML)
+	public String getJunk() throws SQLException, Exception{
+		return retrieve(null);
 	}
 	
 	@POST
-	@Path("{name}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_XML)
-	public String addJunk(@PathParam("name") String name, MultivaluedMap<String,String> params) throws Exception{
-		String id = saveJunk(name, params);
-		System.out.println("posted junk to " + name);
+	public String addJunk(MultivaluedMap<String,String> params) throws Exception{
+		String id = saveJunk(params);
+		System.out.println("posted junk to " + logic.getCollectionName());
 		return XMLUtils.wrap(Settings.getIdKeyword(), id);
 	}
 	
 	@PUT
-	@Path("{name}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String updateJunk(@PathParam("name") String name, MultivaluedMap<String,String> params) throws Exception{
-		String id = saveJunk(name, params);
-		System.out.println("put junk to " + name);
+	public String updateJunk(MultivaluedMap<String,String> params) throws Exception{
+		String id = saveJunk(params);
+		System.out.println("put junk to " + logic.getCollectionName());
 		return XMLUtils.wrap(Settings.getIdKeyword(), id);
 	}
 	
 	@DELETE
-	@Path("{name}/{id}")
-	public String deleteJunk(@PathParam("name") String name, @PathParam("id") String id) throws Exception{
-		JunkFM junk = new JunkFM(name);
+	@Path("{id}")
+	public String deleteJunk(@PathParam("id") String id) throws Exception{
+		JunkFM junk = new JunkFM(logic.getCollectionName());
 		junk.setId(id);
-		new AnonLogic(name).delete(junk);
+		logic.delete(junk);
 		return XMLUtils.wrap("result", "success");
 	}
 	
 	@DELETE
-	@Path("{name}")
-	public String deleteJunk(@PathParam("name") String name) throws Exception{
-		new AnonLogic(name).delete(new JunkFM(name));
+	public String deleteJunk() throws Exception{
+		logic.delete(new JunkFM(logic.getCollectionName()));
 		return XMLUtils.wrap("result", "success");
 	}
 	
-	private String saveJunk(String name, MultivaluedMap<String, String> params)
+	private String saveJunk(MultivaluedMap<String, String> params)
 			throws Exception {
-		if(name == null || name.length() == 0){
-			throw new Exception();
-		}
-		JunkFM junk = new JunkFM(name);
+		JunkFM junk = new JunkFM(logic.getCollectionName());
 		for(String key : params.keySet()){
 			junk.getRawParameters().put(key,params.get(key));
 		}
-		return new AnonLogic(name).persist(junk);
+		return logic.persist(junk);
 	}
 
-	private String retrieve(String name, String id) throws Exception {
-		List<JunkVM> junks = new AnonLogic(name).retrieve(id);
+	private String retrieve(String id) throws Exception {
+		List<JunkVM> junks = logic.retrieve(id);
 		if(junks == null){
 			throw new NotFoundException();
 		}
 		StringBuffer xmlResult = new StringBuffer();
-		xmlResult.append("<collection type=\"" + name + "\">\n");
+		xmlResult.append("<collection type=\"" + logic.getCollectionName() + "\">\n");
 		for(JunkVM junk : junks){
 			xmlResult.append(XMLUtils.toXML(junk.getType(), junk.getProperties()));
 			xmlResult.append("\n");
 		}
 		xmlResult.append("</collection>");
-		System.out.println("Successfully returned collection "+ name);
+		System.out.println("Successfully returned collection "+ logic.getCollectionName());
 		return xmlResult.toString();
 	}
 	
-	
+	private RestAPI<JunkFM, JunkVM, String> logic;
 }

@@ -1,6 +1,5 @@
 package nixon.daniel.junker.logic;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +9,31 @@ public class AnonLogic extends JunkLogic {
 
 	public AnonLogic(String name) throws Exception {
 		super(name);
+	}
+
+	@Override
+	protected List<JunkVM> getCollection() throws Exception {
+		List<JunkVM> vms = null;
+		List<Junk> rawJunk = getRepositoryManager().getRepository()
+				.getAllJunks();
+		if (rawJunk != null) {
+			vms = new ArrayList<JunkVM>();
+			for (Junk junk : rawJunk) {
+				vms.add(toJunkVM(junk));
+			}
+		}
+		return vms;
+	}
+
+	@Override
+	protected List<JunkVM> getItem(String id) throws Exception {
+		List<JunkVM> vms = null;
+		Junk junk = getRepositoryManager().getRepository().getJunkById(id);
+		if(junk != null){
+			vms = new ArrayList<JunkVM>();
+			vms.add(toJunkVM(getRepositoryManager().getRepository().getJunkById(id)));
+		}
+		return vms;
 	}
 
 	@Override
@@ -30,20 +54,8 @@ public class AnonLogic extends JunkLogic {
 		}
 	}
 
-	public List<JunkVM> retrieve(String id) throws SQLException, Exception {
-		List<Junk> rawJunk = retrieveRawJunk(id);
-		List<JunkVM> junkVMs = null;
-		if (rawJunk != null) {
-			junkVMs = new ArrayList<JunkVM>();
-			for (Junk junk : rawJunk) {
-				junkVMs.add(toJunkVM(junk));
-			}
-		}
-		return junkVMs;
-	}
-
 	@Override
-	protected void deleteCollection(String name) throws Exception {
+	protected void deleteCollection() throws Exception {
 		getRepositoryManager().getRepository().deleteAll();
 	}
 
@@ -53,20 +65,8 @@ public class AnonLogic extends JunkLogic {
 	}
 
 	private JunkVM toJunkVM(Junk junk) {
-		JunkVM vm = new JunkVM(getName());
+		JunkVM vm = new JunkVM(getCollectionName());
 		vm.setProperties(junk.getProperties());
 		return vm;
 	}
-
-	private List<Junk> retrieveRawJunk(String id) throws SQLException,
-			Exception {
-		List<Junk> rawJunk;
-		if (id == null) {
-			rawJunk = getRepositoryManager().getRepository().getAllJunks();
-		} else {
-			rawJunk = getRepositoryManager().getRepository().getJunkById(id);
-		}
-		return rawJunk;
-	}
-
 }

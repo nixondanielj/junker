@@ -28,9 +28,14 @@ public class JunkRepository extends Repository {
 		return getJunks(String.format("SELECT * FROM %s", this.tableName));
 	}
 
-	public List<Junk> getJunkById(String id) throws SQLException {
-		return getJunks(String.format("SELECT * FROM %s WHERE %s = ?",
+	public Junk getJunkById(String id) throws SQLException {
+		Junk junk = null;
+		List<Junk> junks = getJunks(String.format("SELECT * FROM %s WHERE %s = ?",
 				this.tableName, Settings.getIdKeyword()), id);
+		if(junks != null){
+			junk = junks.get(0);
+		}
+		return junk;
 	}
 
 	private List<Junk> getJunks(String statement, Object... parameters)
