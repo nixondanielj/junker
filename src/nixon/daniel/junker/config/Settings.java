@@ -1,7 +1,9 @@
 package nixon.daniel.junker.config;
 
+import java.util.logging.Logger;
+
 public class Settings {
-	//returns the name of the junk property used as the identifier in the db
+	//returns the name of the property used as the identifier in the db
 	public static String getIdKeyword(){
 		return "id";
 	}
@@ -12,5 +14,9 @@ public class Settings {
 
 	public static String getAnonDbName() {
 		return "junk";
+	}
+	
+	public static Logger getLogger(Object obj){
+		return Logger.getLogger(obj.getClass().getName());
 	}
 }

@@ -43,6 +43,7 @@ public class Repository {
 			query.setString(i + 1, objects[i].toString());
 		}
 		setResults(query.executeQuery());
+		Settings.getLogger(this).info("Queried: " + query.toString());
 		return this.getResults();
 	}
 
@@ -53,6 +54,7 @@ public class Repository {
 			query.setString(i + 1, objects[i].toString());
 		}
 		query.executeUpdate();
+		Settings.getLogger(this).info("NonQueried: " + query.toString());
 		query.close();
 	}
 
