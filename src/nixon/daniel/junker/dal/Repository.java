@@ -10,6 +10,10 @@ import java.util.Set;
 import nixon.daniel.junker.config.Settings;
 
 public class Repository {
+	
+	public boolean alreadyExists() throws SQLException{
+		return this.tableExists(this.tableName);
+	}
 
 	public Repository(String cString, String dbName, String tableName)
 			throws ClassNotFoundException, SQLException {

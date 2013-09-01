@@ -65,13 +65,17 @@ public class JunkFace {
 	public String deleteJunk(@PathParam("id") String id) throws Exception{
 		JunkFM junk = new JunkFM(logic.getCollectionName());
 		junk.setId(id);
-		logic.delete(junk);
+		if(!logic.delete(junk)){
+			throw new NotFoundException();
+		}
 		return XMLUtils.wrap("result", "success");
 	}
 	
 	@DELETE
 	public String deleteJunk() throws Exception{
-		logic.delete(new JunkFM(logic.getCollectionName()));
+		if(!logic.delete(new JunkFM(logic.getCollectionName()))){
+			throw new NotFoundException();
+		}
 		return XMLUtils.wrap("result", "success");
 	}
 	
