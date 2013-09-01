@@ -23,7 +23,9 @@
 		var vals = $(".parameters .value");
 		var data = {};
 		names.each(function(i) {
-			data[this.value] = vals.get(i).value;
+			if (this.value) {
+				data[this.value] = vals.get(i).value;
+			}
 		});
 		return data;
 	}

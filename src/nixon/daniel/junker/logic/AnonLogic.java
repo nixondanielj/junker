@@ -38,6 +38,16 @@ public class AnonLogic extends JunkLogic {
 		}
 		return junkVMs;
 	}
+	
+	@Override
+	protected void deleteCollection(String name) throws Exception {
+		getRepositoryManager().getRepository().deleteAll();
+	}
+
+	@Override
+	protected void deleteItem(String id) throws Exception {
+		getRepositoryManager().getRepository().delete(id);
+	}
 
 	private JunkVM toJunkVM(Junk junk) {
 		JunkVM vm = new JunkVM(getName());
@@ -55,5 +65,7 @@ public class AnonLogic extends JunkLogic {
 		}
 		return rawJunk;
 	}
+
+	
 
 }

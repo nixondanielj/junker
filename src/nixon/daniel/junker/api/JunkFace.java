@@ -57,8 +57,19 @@ public class JunkFace {
 	}
 	
 	@DELETE
-	public void deleteJunk(){
-		
+	@Path("{name}/{id}")
+	public String deleteJunk(@PathParam("name") String name, @PathParam("id") String id) throws Exception{
+		JunkFM junk = new JunkFM(name);
+		junk.setId(id);
+		new AnonLogic(name).delete(junk);
+		return XMLUtils.wrap("result", "success");
+	}
+	
+	@DELETE
+	@Path("{name}")
+	public String deleteJunk(@PathParam("name") String name) throws Exception{
+		new AnonLogic(name).delete(new JunkFM(name));
+		return XMLUtils.wrap("result", "success");
 	}
 	
 	private String saveJunk(String name, MultivaluedMap<String, String> params)

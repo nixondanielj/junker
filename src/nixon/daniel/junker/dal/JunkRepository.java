@@ -63,6 +63,14 @@ public class JunkRepository extends Repository {
 		}
 		executeNonQuery(String.format(statement, this.tableName, set, Settings.getIdKeyword()), model.getId());
 	}
+	
+	public void delete(String id) throws SQLException{
+		executeNonQuery(String.format("DELETE FROM %s WHERE %s = ?", this.tableName, Settings.getIdKeyword()), id);
+	}
+	
+	public void deleteAll() throws SQLException {
+		executeNonQuery(String.format("DROP TABLE %s", this.tableName));
+	}
 
 	private void insert(Junk junk) throws SQLException {
 		String statement = "INSERT INTO %s (%s) VALUES (%s)";
@@ -78,5 +86,7 @@ public class JunkRepository extends Repository {
 		}
 		executeNonQuery(String.format(statement, this.tableName, columns, vals));
 	}
+
+	
 
 }
