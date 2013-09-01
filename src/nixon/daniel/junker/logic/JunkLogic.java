@@ -41,6 +41,7 @@ public abstract class JunkLogic {
 		} else {
 			deleteItem(junk.getId());
 		}
+		getRepositoryManager().kill();
 	}
 	
 	protected abstract void create(JunkFM junk) throws Exception;
