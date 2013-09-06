@@ -2,7 +2,7 @@
 <html>
 <head>
 <script
-	src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script type="text/javascript">
 	function addParameterField() {
 		var newDiv = $("<div></div>")
@@ -12,8 +12,9 @@
 		paramNameBox.append("<input class=\"name\" type=\"text\" />");
 		paramBox.append(paramNameBox);
 		var paramValBox = $(newDiv);
-		paramValBox.append("<label>Value:</label>");
-		paramValBox.append("<input class=\"value\" type=\"text\" />");
+		paramValBox.append("<label>Value (or length if random):</label>");
+		paramValBox
+				.append("<input class=\"value\" type=\"text\" /><label>Randomize?</label><input class=\"random\" type=\"checkbox\"/>");
 		paramBox.append(paramValBox);
 		$(".parameters").append(paramBox);
 	}
@@ -21,10 +22,20 @@
 	function getData() {
 		var names = $(".parameters .name");
 		var vals = $(".parameters .value");
+		var rndms = $(".parameters .random")
 		var data = {};
 		names.each(function(i) {
 			if (this.value) {
-				data[this.value] = vals.get(i).value;
+				if (rndms[i].checked) {
+					var val = "";
+					var alphanum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+					for(var j = 0; j < vals.get(i).value; j++) {
+						val += alphanum[Math.floor(Math.random() * alphanum.length)];
+					}
+					data[this.value] = val;
+				} else {
+					data[this.value] = vals.get(i).value;
+				}
 			}
 		});
 		return data;
@@ -64,19 +75,22 @@
 
 	function sendRequest() {
 		var url = $(".server").val();
+		var count = parseInt($(".count").val());
 		if (url) {
-			$.ajax({
-				type : $("option:selected").html(),
-				data : getData(),
-				url : url,
-				dataType : 'text',
-				success : function(result) {
-					$(".results").html(cleanse(result));
-				},
-				error : function(result, status, thrown) {
-					alert(status + " " + thrown);
-				}
-			});
+			for ( var i = 0; i < count; i++) {
+				$.ajax({
+					type : $("option:selected").html(),
+					data : getData(),
+					url : url,
+					dataType : 'text',
+					success : function(result) {
+						$(".results").html(cleanse(result));
+					},
+					error : function(result, status, thrown) {
+						alert(status + " " + thrown);
+					}
+				});
+			}
 		} else {
 			alert("Enter a server");
 		}
@@ -86,7 +100,7 @@
 <body>
 	<div>
 		<label>Server:</label> <input class="server" type="text"
-			placeholder="Server here" value="/Junker/junky/junk/people" />
+			placeholder="Server here" value="/Junker/junky/people" />
 	</div>
 	<div>
 		<label>Request Type</label> <select>
@@ -102,6 +116,8 @@
 		</form>
 		<div>
 			<button onclick="sendRequest();">Submit</button>
+			<label>Count: </label> 
+			<input class="count" type="range" value = "1" min="1" max="50" />
 		</div>
 		Results will appear here
 		<div class="results"></div>
