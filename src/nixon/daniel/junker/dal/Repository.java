@@ -5,13 +5,17 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Set;
 
 import nixon.daniel.junker.config.Settings;
 
 public class Repository {
-	
-	public boolean alreadyExists() throws SQLException{
+
+	private static Object tlock = new Object();
+	private static HashMap<String, Object> clocks = new HashMap<String, Object>();
+
+	public boolean alreadyExists() throws SQLException {
 		return this.tableExists(this.tableName);
 	}
 
@@ -25,17 +29,22 @@ public class Repository {
 
 	protected void buildTableStructure(String table, Set<String> set)
 			throws SQLException {
-		if (!tableExists(table)) {
-			createTable(table);
+		synchronized (tlock) {
+			if (!tableExists(table)) {
+				createTable(table);
+				clocks.put(table, new Object());
+			}
+			buildColumns(table, set);
 		}
-		buildColumns(table, set);
 	}
 
 	protected void buildColumns(String table, Set<String> set)
 			throws SQLException {
-		for (String column : set) {
-			if (!hasColumn(table, column)) {
-				addColumn(column);
+		synchronized (clocks.get(table)) {
+			for (String column : set) {
+				if (!hasColumn(table, column)) {
+					addColumn(column);
+				}
 			}
 		}
 	}
@@ -67,7 +76,9 @@ public class Repository {
 	}
 
 	protected void createTable(String name) throws SQLException {
-		executeNonQuery(String.format("CREATE TABLE %s ( %s varchar(5000) not null)", sanitize(name), Settings.getIdKeyword()));
+		executeNonQuery(String.format(
+				"CREATE TABLE %s ( %s varchar(5000) not null)", sanitize(name),
+				Settings.getIdKeyword()));
 	}
 
 	protected boolean hasColumn(String tableName, String columnName)
@@ -78,17 +89,22 @@ public class Repository {
 	}
 
 	protected void addColumn(String columnName) throws SQLException {
-		executeNonQuery(String.format("ALTER TABLE %s ADD %s varchar(5000)", this.tableName, columnName));
+		executeNonQuery(String.format("ALTER TABLE %s ADD %s varchar(5000)",
+				this.tableName, columnName));
 	}
 
 	protected boolean tableExists(String tableName) throws SQLException {
-		return execute("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?",
+		return execute(
+				"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?",
 				this.dbName, tableName).next();
 	}
 
 	public void kill() {
 		killResults();
-		try{connection.close();}catch(Exception e){}
+		try {
+			connection.close();
+		} catch (Exception e) {
+		}
 	}
 
 	private void killResults() {

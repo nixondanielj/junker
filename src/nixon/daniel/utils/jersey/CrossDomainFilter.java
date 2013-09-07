@@ -16,7 +16,6 @@ public class CrossDomainFilter implements ContainerResponseFilter{
         resp.getHttpHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         // keep the setting for a day, should be inexpensive to refresh
         resp.getHttpHeaders().add("Access-Control-Max-Age", "86400");
-        
 		return resp;
 	}
 }

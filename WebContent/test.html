@@ -4,6 +4,24 @@
 <script
 	src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script type="text/javascript">
+	var count = 0;
+	var start = null;
+	var started = false;
+
+	function statLoop() {
+		if (start == null) {
+			start = new Date();
+		}
+		var elapsed = (new Date().getTime() - start.getTime()) / 1000;
+		$('.stats').html(elapsed + " s" + "<br/>" + count / elapsed + " cps");
+		if (started) {
+			setTimeout(statLoop, 1000);
+		} else {
+			count = 0;
+			start = null;
+		}
+	}
+
 	function addParameterField() {
 		var newDiv = $("<div></div>")
 		var paramBox = $(newDiv);
@@ -24,20 +42,22 @@
 		var vals = $(".parameters .value");
 		var rndms = $(".parameters .random")
 		var data = {};
-		names.each(function(i) {
-			if (this.value) {
-				if (rndms[i].checked) {
-					var val = "";
-					var alphanum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-					for(var j = 0; j < vals.get(i).value; j++) {
-						val += alphanum[Math.floor(Math.random() * alphanum.length)];
+		names
+				.each(function(i) {
+					if (this.value) {
+						if (rndms[i].checked) {
+							var val = "";
+							var alphanum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+							for ( var j = 0; j < vals.get(i).value; j++) {
+								val += alphanum[Math.floor(Math.random()
+										* alphanum.length)];
+							}
+							data[this.value] = val;
+						} else {
+							data[this.value] = vals.get(i).value;
+						}
 					}
-					data[this.value] = val;
-				} else {
-					data[this.value] = vals.get(i).value;
-				}
-			}
-		});
+				});
 		return data;
 	}
 
@@ -74,10 +94,14 @@
 	}
 
 	function sendRequest() {
+		count = 0;
+		start = null;
+		started = true;
+		statLoop();
 		var url = $(".server").val();
-		var count = parseInt($(".count").val());
+		var c = parseInt($(".count").val());
 		if (url) {
-			for ( var i = 0; i < count; i++) {
+			for ( var i = 0; i < c; i++) {
 				$.ajax({
 					type : $("option:selected").html(),
 					data : getData(),
@@ -85,6 +109,7 @@
 					dataType : 'text',
 					success : function(result) {
 						$(".results").html(cleanse(result));
+						count++;
 					},
 					error : function(result, status, thrown) {
 						alert(status + " " + thrown);
@@ -116,9 +141,10 @@
 		</form>
 		<div>
 			<button onclick="sendRequest();">Submit</button>
-			<label>Count: </label> 
-			<input class="count" type="range" value = "1" min="1" max="50" />
+			<label>Count: </label> <input class="count" type="number" value="1"
+				min="1" max="5000" />
 		</div>
+		<div class="stats"></div>
 		Results will appear here
 		<div class="results"></div>
 	</div>
